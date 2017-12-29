@@ -1,0 +1,22 @@
+simulator.con
+
+--travelTimeBetweenFloors_ms    2000
+--travelTimePassingFloor_ms     500
+--btnDepressedTime_ms           200
+
+--numFloors             4           // Minimum: 2, maximum: 9
+
+--com_ip                localhost
+--com_port              15657
+
+--light_off             -
+--light_on              *
+
+--key_ordersUp          qwertyui    // 2 to 8 characters
+--key_ordersDown        sdfghjkl    // 2 to 8 characters
+--key_ordersCab         zxcvbnm,.   // 2 to 9 characters
+--key_stopButton        p
+--key_obstruction       -
+--key_moveUp            9
+--key_moveStop          8
+--key_moveDown          7
