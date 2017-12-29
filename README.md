@@ -18,14 +18,6 @@ Main features:
 Usage
 =====
 
-API Changes for `elev.c`
-------------------------
-
-The only difference is:
- - `elev_init(elev_type e);`
- - Takes either `ET_Comedi` or `ET_Simulation`
-
-
 Running the server
 ------------------
 
