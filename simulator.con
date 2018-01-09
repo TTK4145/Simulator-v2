@@ -6,8 +6,7 @@ simulator.con
 
 --numFloors             4           // Minimum: 2, maximum: 9
 
---com_ip                localhost
---com_port              15657
+--port                  15657
 
 --light_off             -
 --light_on              *

@@ -21,70 +21,87 @@ import timer_event;
 /// -----  CONFIG  ----- ///
 ///----------------------///
 
-__gshared auto travelTimeBetweenFloors    = 2.seconds;
-__gshared auto travelTimePassingFloor     = 500.msecs;
-__gshared auto btnDepressedTime           = 200.msecs;
+struct SimConfig {
+    ushort      port                    = 15657;
+    
+    int         numFloors               = 4;
+    
+    Duration    travelTimeBetweenFloors = 2.seconds;
+    Duration    travelTimePassingFloor  = 500.msecs;
+    Duration    btnDepressedTime        = 200.msecs;
 
-__gshared int numFloors = 4;
+    char        light_off               = '-';
+    char        light_on                = '*';    
 
-__gshared ushort port = 15657;
-
-__gshared char off    = '-';
-__gshared char on     = '*';
-
-__gshared string[] key_orderButtons = [
-    "qwertyui?",
-    "?sdfghjkl",
-    "zxcvbnm,.",
-];
-__gshared char key_stopButton   = 'p';
-__gshared char key_obstruction  = '-';
-__gshared char key_moveUp       = '9';
-__gshared char key_moveStop     = '8';
-__gshared char key_moveDown     = '7';
-
-
-void loadConfig(string file){
-    try {
-        string[] configContents;
-
-        int travelTimeBetweenFloors_ms;
-        int travelTimePassingFloor_ms;
-        int btnDepressedTime_ms;
-        string key_ordersUp;
-        string key_ordersDown;
-        string key_ordersCab;
-
-        configContents = file.readText.split;
-        getopt( configContents,
-            std.getopt.config.passThrough,
-            "travelTimeBetweenFloors_ms",   &travelTimeBetweenFloors_ms,
-            "travelTimePassingFloor_ms",    &travelTimePassingFloor_ms,
-            "btnDepressedTime_ms",          &btnDepressedTime_ms,
-            "numFloors",                    &numFloors,
-            "com_port",                     &port,
-            "light_off",                    &off,
-            "light_on",                     &on,
-            "key_ordersUp",                 &key_ordersUp,
-            "key_ordersDown",               &key_ordersDown,
-            "key_ordersCab",                &key_ordersCab,
-            "key_stopButton",               &key_stopButton,
-            "key_obstruction",              &key_obstruction,
-            "key_moveUp",                   &key_moveUp,
-            "key_moveStop",                 &key_moveStop,
-            "key_moveDown",                 &key_moveDown,
-        );
-
-        travelTimeBetweenFloors    = travelTimeBetweenFloors_ms.msecs;
-        travelTimePassingFloor     = travelTimePassingFloor_ms.msecs;
-        btnDepressedTime           = btnDepressedTime_ms.msecs;
-        key_orderButtons = [key_ordersUp, "?"~key_ordersDown, key_ordersCab];
-
-    } catch(Exception e){
-        writeln("Unable to load simulationElevator config (", e.msg, "), using defaults.");
-    }
+    char        key_stopButton          = 'p';
+    char        key_obstruction         = '-';
+    char        key_moveUp              = '9';
+    char        key_moveStop            = '8';
+    char        key_moveDown            = '7';
+    string[]    key_orderButtons       = [
+                                            "qwertyui?",
+                                            "?sdfghjkl",
+                                            "zxcvbnm,.",
+                                        ];
 }
 
+
+__gshared SimConfig cfg;
+
+
+SimConfig parseConfig(string[] contents, SimConfig old = SimConfig.init){
+    int travelTimeBetweenFloors_ms;
+    int travelTimePassingFloor_ms;
+    int btnDepressedTime_ms;
+    string key_ordersUp;
+    string key_ordersDown;
+    string key_ordersCab;
+    
+    SimConfig cfg = old;
+
+    getopt( contents,
+        std.getopt.config.passThrough,
+        "port",                         &cfg.port,
+        "numFloors",                    &cfg.numFloors,
+        "travelTimeBetweenFloors_ms",   &travelTimeBetweenFloors_ms,
+        "travelTimePassingFloor_ms",    &travelTimePassingFloor_ms,
+        "btnDepressedTime_ms",          &btnDepressedTime_ms,
+        "light_off",                    &cfg.light_off,
+        "light_on",                     &cfg.light_on,
+        "key_ordersUp",                 &key_ordersUp,
+        "key_ordersDown",               &key_ordersDown,
+        "key_ordersCab",                &key_ordersCab,
+        "key_stopButton",               &cfg.key_stopButton,
+        "key_obstruction",              &cfg.key_obstruction,
+        "key_moveUp",                   &cfg.key_moveUp,
+        "key_moveStop",                 &cfg.key_moveStop,
+        "key_moveDown",                 &cfg.key_moveDown,
+    );
+
+    if(travelTimeBetweenFloors_ms   != 0){  cfg.travelTimeBetweenFloors = travelTimeBetweenFloors_ms.msecs; }
+    if(travelTimePassingFloor_ms    != 0){  cfg.travelTimePassingFloor  = travelTimePassingFloor_ms.msecs;  }
+    if(btnDepressedTime_ms          != 0){  cfg.btnDepressedTime        = btnDepressedTime_ms.msecs;        }
+    if(key_ordersUp                 != ""){ cfg.key_orderButtons[0]     = key_ordersUp;     }
+    if(key_ordersDown               != ""){ cfg.key_orderButtons[1]     = key_ordersDown;   }
+    if(key_ordersCab                != ""){ cfg.key_orderButtons[2]     = key_ordersCab;    }
+    
+    return cfg;
+}
+
+SimConfig loadConfig(string[] cmdLineArgs, string configFileName, SimConfig old = SimConfig.init){
+    try {
+        old = configFileName.readText.split.parseConfig(old);
+    } catch(Exception e){
+        writeln(configFileName ~ "not found, using defaults...");
+        
+    }
+    
+    if(cmdLineArgs.length > 1){
+        writeln("Parsing command line args...");
+        old = cmdLineArgs.parseConfig(old);
+    }
+    return old;
+}
 
 
 
@@ -181,6 +198,15 @@ struct FloorDeparture {
 }
 
 
+/// --- LOG --- ///
+
+struct ClientConnected {
+    bool value;
+    alias value this;
+}
+
+
+
 ///---------------------///
 /// -----  TYPES  ----- ///
 ///---------------------///
@@ -247,6 +273,7 @@ final class SimulationState {
     int         prevFloor;      // 0..numFloors, never -1
 
     char[][]    bg;
+    bool        clientConnected;
     int         printCount;
 
     invariant {
@@ -279,15 +306,14 @@ final class SimulationState {
                 c = ' ';
             }
         }
-        bg[0][] = "+-----------+"   ~ "-".repeat(numFloors*4+1).join                      ~ "+            ";
-        bg[1][] = "|           |"   ~ " ".repeat(numFloors*4+1).join                      ~ "|            ";
-        bg[2][] = "| Floor     |  " ~ iota(0, numFloors).map!(to!string).join("   ")    ~ "  |            ";
-        bg[3][] = "+-----------+"   ~ "-".repeat(numFloors*4+1).join                      ~ "+-----------+";
-        bg[4][] = "| Hall Up   |"   ~ " ".repeat(numFloors*4+1).join                      ~ "| Door:     |";
-        bg[5][] = "| Hall Down |"   ~ " ".repeat(numFloors*4+1).join                      ~ "| Stop:     |";
-        bg[6][] = "| Cab       |"   ~ " ".repeat(numFloors*4+1).join                      ~ "| Obstr:    |";
-        bg[7][] = "+-----------+"   ~ "-".repeat(numFloors*4+1).join                      ~ "+-----------+";
-
+        bg[0][] = "+-----------+"   ~ "-".repeat(cfg.numFloors*4+1).join                    ~ "+            ";
+        bg[1][] = "|           |"   ~ " ".repeat(cfg.numFloors*4+1).join                    ~ "|            ";
+        bg[2][] = "| Floor     |  " ~ iota(0, cfg.numFloors).map!(to!string).join("   ")  ~ "  |            ";
+        bg[3][] = "+-----------+"   ~ "-".repeat(cfg.numFloors*4+1).join                    ~ "+-----------+";
+        bg[4][] = "| Hall Up   |"   ~ " ".repeat(cfg.numFloors*4+1).join                    ~ "| Door:     |";
+        bg[5][] = "| Hall Down |"   ~ " ".repeat(cfg.numFloors*4+1).join                    ~ "| Stop:     |";
+        bg[6][] = "| Cab       |"   ~ " ".repeat(cfg.numFloors*4+1).join                    ~ "| Obstr:    |";
+        bg[7][] = "+-----------+"   ~ "-".repeat(cfg.numFloors*4+1).join                    ~ "+-----------+";
     }
 
     override string toString(){
@@ -298,19 +324,19 @@ final class SimulationState {
         }
 
 
-        bg[2][16+floorIndicator*4]      = on;
-        bg[4][$-3] = doorLight          ? on  : off;
-        bg[5][$-3] = stopButtonLight    ? on  : off;
+        bg[2][16+floorIndicator*4]      = cfg.light_on;
+        bg[4][$-3] = doorLight          ? cfg.light_on  : cfg.light_off;
+        bg[5][$-3] = stopButtonLight    ? cfg.light_on  : cfg.light_off;
         bg[6][$-3] = obstruction        ? 'v' : '^';
 
         foreach(floor, lightsAtFloor; orderLights){
             foreach(btnType, lightEnabled; lightsAtFloor){
-                if( (btnType == BtnType.Up  &&  floor == numFloors-1) ||
+                if( (btnType == BtnType.Up  &&  floor == cfg.numFloors-1) ||
                     (btnType == BtnType.Down  &&  floor == 0)
                 ){
                     continue;
                 }
-                bg[4+btnType][15+floor*4] = lightEnabled ? on : off;
+                bg[4+btnType][15+floor*4] = lightEnabled ? cfg.light_on : cfg.light_off;
             }
         }
 
@@ -333,15 +359,71 @@ final class SimulationState {
             bg[1][elevatorPos-1] = '<';
         }
 
-        auto c = (++printCount).to!(char[]);
-        bg[7][$-1-c.length..$-1] = c[0..$];
+        auto cc = clientConnected ? 
+            "Connected   " : 
+            "Disconnected" ;
+        bg[2][$-12..$-12+cc.length] = cc[0..$];
+        
+        auto pc = (++printCount).to!(char[]);
+        bg[7][$-1-pc.length..$-1] = pc[0..$];
 
         return bg.map!(a => a.to!string).reduce!((a, b) => a ~ "\n" ~ b);
     }
 
 }
 
+struct ConsolePoint {
+    int x;
+    int y;
+}
 
+version(Windows){
+    import core.sys.windows.wincon;
+    import core.sys.windows.winbase;
+    void setCursorPos(ConsolePoint p){
+        COORD coord = {
+            cast(short)min(100, max(0, p.x)),
+            cast(short)max(0, p.y)
+        };
+        stdout.flush();
+        SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+    }
+    
+    ConsolePoint cursorPos(){
+        CONSOLE_SCREEN_BUFFER_INFO info;
+        GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
+        return ConsolePoint(info.dwCursorPosition.X, info.dwCursorPosition.Y);
+    }
+}
+
+version(Posix){
+    import core.sys.posix.termios;
+        
+    void setCursorPos(ConsolePoint p){
+        stdout.flush();
+        writef("\033[%d;%df", p.y, p.x);
+    }
+    
+    ConsolePoint cursorPos(){
+        char[] buf;
+
+        write("\033[6n");
+        stdout.flush();
+        foreach(i; 0..8){
+            char c;
+            c = cast(char)getchar();
+            buf ~= c;
+            if(c == 'R'){
+                break;
+            }
+        }
+
+        buf = buf[2..$-1];
+        auto tmp = buf.split(";");
+
+        return ConsolePoint(to!int(tmp[1]) - 1, to!int(tmp[0]) - 1);
+    }
+}
 
 
 
@@ -349,15 +431,16 @@ final class SimulationState {
 void main(string[] args){
     try {
 
-    (args.length == 2 ? args[1] : "simulator.con").loadConfig;
+    cfg = loadConfig(args, "simulator.con");
+    
 
-    auto state = new SimulationState(Yes.randomStart, numFloors);
+    ConsolePoint cp = cursorPos;
+    cp.writeln;
+    
+
+    auto state = new SimulationState(Yes.randomStart, cfg.numFloors);
     void printState(){
-        version(Posix){
-            wait(spawnShell("clear"));
-        } else version(Windows){
-            wait(spawnShell("cls"));
-        }
+        setCursorPos(cp);
         state.writeln;
     }
     printState;
@@ -385,8 +468,8 @@ void main(string[] args){
             /// --- RESET --- ///
 
             (ReloadConfig r){
-                (args.length == 2 ? args[1] : "simulator.con").loadConfig;
-                state = new SimulationState(Yes.randomStart, numFloors);
+                cfg = loadConfig(args, "simulator.con", cfg);
+                state = new SimulationState(Yes.randomStart, cfg.numFloors);
             },
 
 
@@ -407,16 +490,16 @@ void main(string[] args){
                     if(md != Dirn.Stop){
                         if(state.currFloor != -1){
                             // At a floor: depart this floor
-                            addEvent(thisTid, travelTimePassingFloor, FloorDeparture(state.currFloor));
+                            addEvent(thisTid, cfg.travelTimePassingFloor, FloorDeparture(state.currFloor));
                             state.departDirn = md;
                         } else {
                             // Between floors
                             if(state.departDirn == md){
                                 // Continue in that direction
-                                addEvent(thisTid, travelTimeBetweenFloors, FloorArrival(state.prevFloor + md));
+                                addEvent(thisTid, cfg.travelTimeBetweenFloors, FloorArrival(state.prevFloor + md));
                             } else {
                                 // Go back to previous floor
-                                addEvent(thisTid, travelTimeBetweenFloors, FloorArrival(state.prevFloor));
+                                addEvent(thisTid, cfg.travelTimeBetweenFloors, FloorArrival(state.prevFloor));
                             }
                         }
                     }
@@ -526,7 +609,7 @@ void main(string[] args){
 
                 state.currFloor = f;
                 state.prevFloor = f;
-                addEvent(thisTid, travelTimePassingFloor, FloorDeparture(state.currFloor));
+                addEvent(thisTid, cfg.travelTimePassingFloor, FloorDeparture(state.currFloor));
             },
             (FloorDeparture f){
                 if(state.currDirn == Dirn.Down){
@@ -540,9 +623,14 @@ void main(string[] args){
 
                 state.departDirn = state.currDirn;
                 state.currFloor = -1;
-                addEvent(thisTid, travelTimeBetweenFloors, FloorArrival(state.prevFloor + state.currDirn));
+                addEvent(thisTid, cfg.travelTimeBetweenFloors, FloorArrival(state.prevFloor + state.currDirn));
             },
 
+            /// --- LOG --- ///
+            (ClientConnected cc){
+                state.clientConnected = cc;
+            },
+            
 
             /// --- OTHER --- ///
             
@@ -605,7 +693,7 @@ void stdinParseProc(Tid receiver){
     while(true){
         receive(
             (StdinChar c){
-                foreach(int btnType, keys; key_orderButtons){
+                foreach(int btnType, keys; cfg.key_orderButtons){
                     int floor = keys.countUntil(c.toLower).to!int;
                     if( (floor != -1) &&
                         !(btnType == BtnType.Up && c == keys[$-1]) &&
@@ -615,31 +703,31 @@ void stdinParseProc(Tid receiver){
                             receiver.send(OrderButton(floor, btnType, BtnAction.Toggle));
                         } else {
                             receiver.send(OrderButton(floor, btnType, BtnAction.Press));
-                            addEvent(receiver, btnDepressedTime, OrderButton(floor, btnType, BtnAction.Release));
+                            addEvent(receiver, cfg.btnDepressedTime, OrderButton(floor, btnType, BtnAction.Release));
                         }
                     }
                 }
 
-                if(c.toLower == key_stopButton){
+                if(c.toLower == cfg.key_stopButton){
                     if(c.isUpper){
                         receiver.send(StopButton(BtnAction.Toggle));
                     } else {
                         receiver.send(StopButton(BtnAction.Press));
-                        addEvent(receiver, btnDepressedTime, StopButton(BtnAction.Release));
+                        addEvent(receiver, cfg.btnDepressedTime, StopButton(BtnAction.Release));
                     }
                 }
 
-                if(c == key_obstruction){
+                if(c == cfg.key_obstruction){
                     receiver.send(ObstructionSwitch());
                 }
 
-                if(c == key_moveUp){
+                if(c == cfg.key_moveUp){
                     receiver.send(MotorDirection(Dirn.Up));
                 }
-                if(c == key_moveStop){
+                if(c == cfg.key_moveStop){
                     receiver.send(MotorDirection(Dirn.Stop));
                 }
-                if(c == key_moveDown){
+                if(c == cfg.key_moveDown){
                     receiver.send(MotorDirection(Dirn.Down));
                 }
             }
@@ -657,20 +745,20 @@ void networkInterfaceProc(Tid receiver){
     Socket acceptSock = new TcpSocket();
 
     acceptSock.setOption(SocketOptionLevel.SOCKET, SocketOption.REUSEADDR, 1);
-    acceptSock.bind(new InternetAddress(port.to!ushort));
+    acceptSock.bind(new InternetAddress(cfg.port.to!ushort));
     acceptSock.listen(1);
 
     ubyte[4] buf;
 
     while(true){
         auto sock = acceptSock.accept();
-        writeln("Connected");
+        receiver.send(ClientConnected(true));
         while(sock.isAlive){
             buf = 0;
             auto n = sock.receive(buf);
 
             if(n <= 0){
-                writeln("Disconnected");
+                receiver.send(ClientConnected(false));
                 sock.shutdown(SocketShutdown.BOTH);
                 sock.close();
             } else {

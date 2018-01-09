@@ -1,37 +1,38 @@
 Simulator mkII
 ==============
 
-This simulator is an extension to `elev.c` that lets you use both the actual elevator at the real-time lab, and a simulated elevator.
-
-The simulated elevator is a server which is intended to be run in its own window. Communication with the server is done over TCP. `elev.c` has been modified to act as a client, where the network portion is written with linux in mind (as this is what you use at the lab, and libcomedi also only works on linux). However, it is possible to write a client in another language, thus avoiding the OS-specific C code entirely.
-
-The server is written in D, so you will need a D compiler to run it. I recommend using the dmd compiler (since this is the only one I have tested it with), which you can get from [The D lang website](http://dlang.org/download.html#dmd).
+This simulator is a drop-in alternative to the elevator hardware server that interfaces to the hardware at the lab. Communication to the simulator is over TCP, with the same protocol as the hardware server.
 
 Main features:
  - 2 to 9 floors: Test the elevator with a different number of floors
- - Fully customizable controls: Dvorak and qwertz users rejoice!
+ - Fully customizable controls: Dvorak and azerty users rejoice!
  - Full-time manual motor override: Control the motor directly, simulating motor stop or unexpected movement.
  - Button hold: Hold down buttons by using uppercase letters.
+
  
-
-
+Executables
+===========
+ 
+[Executables for Windows and Linux can be found here](https://github.com/TTK4145/Simulator-v2/releases/latest)
+ 
+The server is intended to run in its own window, as it also takes keyboard input to simulate button presses. The server should not need to be restarted if the client is restarted.
+ 
 Usage
 =====
-
-Running the server
-------------------
-
-The server is intended to run in its own window, as it also takes keyboard input to simulate button presses. The server should not need to be restarted if the client is restarted.
-
-Running:
- - `rdmd sim_server.d`, if `simulator.con` is in the folder you are running `rdmd` from, or
- - `rdmd sim_server.d [configfile]`, to specify a another config file.
-
 
 Configuration options
 ---------------------
 
-See [simulator.con](simulator.con) for all the config options.
+The simulator has several configuration options, which you can find [listed here](simulator.con). The most relevant options are:
+ - `--port`: This is the TCP port used to connect to the simulator, which defaults to 15657.  
+ You should change this number in order to not interfere with other people's running simulators.  
+ You can start multiple simulators with different port numbers to run multiple elevators on a single machine.
+ - `--numfloors`: The number of floors 2 to 9), which defaults to 4.
+ 
+Options passed on the command line (eg. `./sim_server --port 12345`) override the options in the the `simulator.con` config file, which in turn override the defaults baked in to the program. `simulator.con` must exist in the same folder as the executable in order to be loaded.
+
+Options are not case sensitive.
+ 
 
 Default keyboard controls
 -------------------------
@@ -43,7 +44,7 @@ Default keyboard controls
  - Obstruction: `-`
  - Motor manual override: Down: `7`, Stop: `8`, Up: `9`
 
-Up, down, cab and stop button can be toggled (and thereby held down) by using uppercase letters.
+Up, down, cab and stop buttons can be toggled (and thereby held down) by using uppercase letters.
 
 
 Display
@@ -52,7 +53,7 @@ Display
 ```
 +-----------+-----------------+
 |           |        #>       |
-| Floor     |  0   1*  2   3  |
+| Floor     |  0   1*  2   3  |Connected
 +-----------+-----------------+-----------+
 | Hall Up   |  *   -   -      | Door:   - |
 | Hall Down |      -   -   *  | Stop:   - |
@@ -64,12 +65,18 @@ The ascii-art-style display is updated whenever the state of the simulated eleva
 
 A print count (number of times a new state is printed) is shown in the lower right corner of the display. Try to avoid writing to the (simulated) hardware if nothing has happened. A jump of 20-50 in the printcount is fine (even expected), but if there are larger jumps or there is a continuous upward count, it may be time to re-evaluate some design choices.
 
+Compiling from source
+---------------------
+
+The server is written in D, so you will need a D compiler to run it. I recommend using the dmd compiler (since this is the only one I have tested it with), which you can get from [The D lang website](http://dlang.org/download.html#dmd).
+
+Compile with `dmd -w -g src/sim_server.d src/timer_event.d -ofSimElevatorServer`
 
 
 Creating your own client
 ========================
 
-You can use the simulator entirely without the C client code by creating your own client in the language of your choice. The binary protocol for interfacing with the server is outlined below:
+If your client works with the elevator hardware server, then it should work with the simulator with no changes. 
 
 Protocol
 --------
@@ -86,7 +93,7 @@ Protocol
             <td align="center" colspan="0" rowspan="7"></td>
         </tr>
         <tr>
-            <td><em>Reload config</em></td>
+            <td><em>Reload config (file and args)</em></td>
             <td>&nbsp;&nbsp;0&nbsp;&nbsp;</td>
             <td>X</td>
             <td>X</td>
