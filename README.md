@@ -16,6 +16,8 @@ Executables
 [Executables for Windows and Linux can be found here](https://github.com/TTK4145/Simulator-v2/releases/latest)
  
 The server is intended to run in its own window, as it also takes keyboard input to simulate button presses. The server should not need to be restarted if the client is restarted.
+
+Remember to `chmod +x SimElevatorServer` in order to give yourself permission to run downloaded files.
  
 Usage
 =====
@@ -64,6 +66,8 @@ Display
 The ascii-art-style display is updated whenever the state of the simulated elevator is updated.
 
 A print count (number of times a new state is printed) is shown in the lower right corner of the display. Try to avoid writing to the (simulated) hardware if nothing has happened. A jump of 20-50 in the printcount is fine (even expected), but if there are larger jumps or there is a continuous upward count, it may be time to re-evaluate some design choices.
+
+Since the simulator changes the terminal input mode (in order to read key presses without you having to press Enter), the input mode is sometimes broken if the simulator does not quit properly. Type `reset` and hit Enter to reset the terminal completely if this happens.
 
 Compiling from source
 ---------------------
