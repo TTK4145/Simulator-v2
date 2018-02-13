@@ -229,8 +229,7 @@ final class SimulationState {
         this.numFloors  = numFloors;
         orderButtons    = new bool[3][](numFloors);
         orderLights     = new bool[3][](numFloors);
-        resetState();
-
+        
         bg = new char[][](8, 27 + 4*numFloors);
 
         if(randomStart){
@@ -290,8 +289,8 @@ final class SimulationState {
     }
 
     void resetState(){
-        orderButtons.fill(false);
-        orderLights.fill(false);
+        orderButtons    = new bool[3][](numFloors);
+        orderLights     = new bool[3][](numFloors);
         stopButton      = false;
         stopButtonLight = false;
         obstruction     = false;
