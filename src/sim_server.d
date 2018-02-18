@@ -92,7 +92,7 @@ SimConfig loadConfig(string[] cmdLineArgs, string configFileName, SimConfig old 
     try {
         old = configFileName.readText.split.parseConfig(old);
     } catch(Exception e){
-        writeln(configFileName ~ "not found, using defaults...");
+        writeln(configFileName ~ " not found, using defaults...");
         
     }
     
@@ -431,13 +431,12 @@ void main(string[] args){
     try {
 
     cfg = loadConfig(args, "simulator.con");
-    
-
-    ConsolePoint cp = cursorPos;
-    cp.writeln;
-    
 
     auto state = new SimulationState(Yes.randomStart, cfg.numFloors);
+    writeln('\n'.repeat(state.bg.length.to!int-1));
+    ConsolePoint cp = cursorPos;
+    cp.y = max(0, cp.y-(state.bg.length.to!int-1));
+    
     void printState(){
         setCursorPos(cp);
         state.writeln;
