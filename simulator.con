@@ -3,6 +3,7 @@ simulator.con
 --travelTimeBetweenFloors_ms    2000
 --travelTimePassingFloor_ms     500
 --btnDepressedTime_ms           200
+--stopMotorOnDisconnect         true
 
 --numFloors             4           // Minimum: 2, maximum: 9
 

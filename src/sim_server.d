@@ -29,6 +29,7 @@ struct SimConfig {
     Duration    travelTimeBetweenFloors = 2.seconds;
     Duration    travelTimePassingFloor  = 500.msecs;
     Duration    btnDepressedTime        = 200.msecs;
+    bool        stopMotorOnDisconnect   = true;
 
     char        light_off               = '-';
     char        light_on                = '*';    
@@ -54,6 +55,7 @@ SimConfig parseConfig(string[] contents, SimConfig old = SimConfig.init){
     int travelTimeBetweenFloors_ms;
     int travelTimePassingFloor_ms;
     int btnDepressedTime_ms;
+    string stopMotorOnDisconnect_str;
     string key_ordersUp;
     string key_ordersDown;
     string key_ordersCab;
@@ -67,6 +69,7 @@ SimConfig parseConfig(string[] contents, SimConfig old = SimConfig.init){
         "travelTimeBetweenFloors_ms",   &travelTimeBetweenFloors_ms,
         "travelTimePassingFloor_ms",    &travelTimePassingFloor_ms,
         "btnDepressedTime_ms",          &btnDepressedTime_ms,
+        "stopMotorOnDisconnect",        &stopMotorOnDisconnect_str,
         "light_off",                    &cfg.light_off,
         "light_on",                     &cfg.light_on,
         "key_ordersUp",                 &key_ordersUp,
@@ -83,6 +86,7 @@ SimConfig parseConfig(string[] contents, SimConfig old = SimConfig.init){
     if(travelTimeBetweenFloors_ms   != 0){  cfg.travelTimeBetweenFloors = travelTimeBetweenFloors_ms.msecs; }
     if(travelTimePassingFloor_ms    != 0){  cfg.travelTimePassingFloor  = travelTimePassingFloor_ms.msecs;  }
     if(btnDepressedTime_ms          != 0){  cfg.btnDepressedTime        = btnDepressedTime_ms.msecs;        }
+    cfg.stopMotorOnDisconnect = stopMotorOnDisconnect_str.to!bool;
     if(key_ordersUp                 != ""){ cfg.key_orderButtons[0]     = key_ordersUp ~ "?";               }
     if(key_ordersDown               != ""){ cfg.key_orderButtons[1]     = "?" ~ key_ordersDown;             }
     if(key_ordersCab                != ""){ cfg.key_orderButtons[2]     = key_ordersCab;                    }
@@ -650,6 +654,9 @@ void main(string[] args){
             /// --- LOG --- ///
             (ClientConnected cc){
                 state.clientConnected = cc;
+                if(cfg.stopMotorOnDisconnect && !cc){
+                    thisTid.send(MotorDirection(Dirn.Stop));
+                }
             },
             
 
