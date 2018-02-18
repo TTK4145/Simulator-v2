@@ -45,6 +45,7 @@ Default keyboard controls
  - Stop: `p`
  - Obstruction: `-`
  - Motor manual override: Down: `7`, Stop: `8`, Up: `9`
+ - Move elevator back in bounds (away from the end stop switches): `0`
 
 Up, down, cab and stop buttons can be toggled (and thereby held down) by using uppercase letters.
 
