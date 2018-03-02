@@ -86,7 +86,7 @@ SimConfig parseConfig(string[] contents, SimConfig old = SimConfig.init){
     if(travelTimeBetweenFloors_ms   != 0){  cfg.travelTimeBetweenFloors = travelTimeBetweenFloors_ms.msecs; }
     if(travelTimePassingFloor_ms    != 0){  cfg.travelTimePassingFloor  = travelTimePassingFloor_ms.msecs;  }
     if(btnDepressedTime_ms          != 0){  cfg.btnDepressedTime        = btnDepressedTime_ms.msecs;        }
-    cfg.stopMotorOnDisconnect = stopMotorOnDisconnect_str.to!bool;
+    if(stopMotorOnDisconnect_str    != ""){ cfg.stopMotorOnDisconnect   = stopMotorOnDisconnect_str.to!bool;}
     if(key_ordersUp                 != ""){ cfg.key_orderButtons[0]     = key_ordersUp ~ "?";               }
     if(key_ordersDown               != ""){ cfg.key_orderButtons[1]     = "?" ~ key_ordersDown;             }
     if(key_ordersCab                != ""){ cfg.key_orderButtons[2]     = key_ordersCab;                    }
