@@ -302,7 +302,6 @@ final class SimulationState {
         obstruction     = false;
         doorLight       = false;
         floorIndicator  = 0;
-        printCount      = 0;
     }
 
     void resetBg(){
@@ -487,7 +486,10 @@ void main(string[] args){
 
             (ReloadConfig r){
                 cfg = loadConfig(args, "simulator.con", cfg);
+                auto prevPrintCount = state.printCount;
                 state = new SimulationState(Yes.randomStart, cfg.numFloors);
+                state.printCount = prevPrintCount;
+                state.clientConnected = true;
             },
 
 
