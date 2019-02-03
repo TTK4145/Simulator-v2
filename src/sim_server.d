@@ -723,17 +723,17 @@ void stdinParseProc(Tid receiver){
     while(true){
         receive(
             (StdinChar c){
-                foreach(int btnType, keys; cfg.key_orderButtons){
+                foreach(btnType, keys; cfg.key_orderButtons){
                     int floor = keys.countUntil(c.toLower).to!int;
                     if( (floor != -1) &&
                         !(btnType == BtnType.Up && c == keys[$-1]) &&
                         !(btnType == BtnType.Down && c == keys[0])
                     ){
                         if(c.isUpper){
-                            receiver.send(OrderButton(floor, btnType, BtnAction.Toggle));
+                            receiver.send(OrderButton(floor, cast(BtnType)btnType, BtnAction.Toggle));
                         } else {
-                            receiver.send(OrderButton(floor, btnType, BtnAction.Press));
-                            addEvent(receiver, cfg.btnDepressedTime, OrderButton(floor, btnType, BtnAction.Release));
+                            receiver.send(OrderButton(floor, cast(BtnType)btnType, BtnAction.Press));
+                            addEvent(receiver, cfg.btnDepressedTime, OrderButton(floor, cast(BtnType)btnType, BtnAction.Release));
                         }
                     }
                 }
